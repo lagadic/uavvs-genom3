@@ -1,0 +1,170 @@
+/*
+ * Copyright (c) 2020 IRISA/Inria
+ * All rights reserved.
+ *
+ * Redistribution and use  in source  and binary  forms,  with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *   1. Redistributions of  source  code must retain the  above copyright
+ *      notice and this list of conditions.
+ *   2. Redistributions in binary form must reproduce the above copyright
+ *      notice and  this list of  conditions in the  documentation and/or
+ *      other materials provided with the distribution.
+ *
+ * 				      Joudy Nader on 2 March 2020
+ *                       based on genom3 components from Anthony Mallet
+ */
+
+#pragma require "openrobots2-idl >= 2.0"
+
+#include "or/pose/rigid_body.gen"
+
+component uavvs
+{
+    version   "1.0";
+    doc       "This component makes the drone detect and follow an AprilTag from the 36h11 family";
+    require   "genom3 >= 2.99.30";
+    codels-requires "visp >= 3.3.0";
+
+    uses		or_rigid_body;
+
+/*---------------NATIVE TYPES-----------------*/  
+    native image_s;
+    native grabber_s;
+    native display_s;
+    native detector_s;
+    native camera_s;
+    native servo_s;
+    native log_s;
+
+/*-----------------------OUTPUT PORT----------------------------------*/
+    port out or_rigid_body::state desired
+    {
+        doc "Provides desired velocity";
+    };
+
+    exception e_sys { short code; string<128> what; };
+
+/*-----------------INTERNAL DATA STRUCTURE-----------------------------*/
+    ids
+    {
+        /* tag size */
+        double tag_size;
+
+        /* flags to specify whether or not the display, grabber, camera, detector and servo task are created */
+        boolean display;
+        boolean grabber;
+        boolean detector;
+        boolean camera;
+        boolean servo;
+
+        image_s I;
+        grabber_s g;
+        display_s d;
+        detector_s apriltag_detector;
+        camera_s cam;
+        servo_s task;
+
+        /* logging */
+        log_s log;
+    };    
+
+/*-----------------FUNCTIONS-----------------------------*/
+    function enable_display(in double frequency)
+    {
+        doc "Enable display with `frequency` image per second";
+
+        codel uavvs_enable_display(out d, out display, in frequency, in g);
+    };
+
+    function close_display()
+    {
+        doc "Close the display";
+        
+        codel uavvs_close_display(inout d, out display, inout I);
+    };
+
+
+    function init_grabber(in short device = 0, in short cam_index = 0, in short frame_rate = 50: ": in Hz", in boolean shutter = TRUE, in boolean gain = TRUE)
+    {
+        doc "Initialize grabber data structure and opens the grabber object";
+        doc "The parameters are:";
+        doc "";
+        doc "device :";
+        doc "";
+        doc "- 0 if using FLIR cameras through FlyCapture SDK";
+        doc "";
+        doc "- 1 if using cameras through OpenCV ";
+        doc "";
+        doc "cam_index : the index of the camera";
+        doc "";
+        doc "frame_rate: Select the frame_rate of the camera (for FlyCapture)";
+        doc "";
+        doc "shutter: auto or manual shutter (for FlyCapture)";
+        doc "";
+        doc "gain: auto or manual gain (for FlyCapture)";
+
+        codel uavvs_init_grabber(out g, out grabber, inout I, in device, in cam_index, in frame_rate, in shutter, in gain);
+    };
+
+
+    function init_detector(in double tagSize, in double quad_decimate = 2.0, in double nThreads = 4)
+    {
+        doc "Initializes aprilTag detector";
+
+        codel uavvs_init_detector(out apriltag_detector, out tag_size, out detector, in tagSize, in quad_decimate, in nThreads);
+    };
+
+
+    function init_camera(in double px, in double py, in double u0, in double v0, in double kud, in double kdu)
+    {
+        doc "Initialize camera parameters.";
+        doc "";
+        doc "Note that this function should be called after calibrating the camera with ViSP calibration example.";
+        doc "";
+        doc "This method initializes the camera with specific parameters using perspective projection with distortion model.";
+
+        codel uavvs_init_camera(out cam, out camera, in px, in py, in u0, in v0, in kud, in kdu);
+    };
+
+
+    function init_servo(in double lambda_0 = 0.5 : ": gain at 0", in double lambda_inf = 0.3: ": gain at infinity", in double lambda_dot_0 = 30 : ": slope at 0", in double z_desired = 1.25 : ": Desired distance to keep from tag", in double camera_pan, in double camera_pos[3])
+    {
+        doc "Initialize visual servoing";
+        doc "";
+        doc "camera_pos[3] is the position of camera frame's origin in UAV's frame";
+                
+        codel uavvs_init_servo(out task, out servo, in tag_size, in lambda_0, in lambda_inf, in lambda_dot_0, in z_desired, in camera_pan, in camera_pos);
+    };
+
+/* -------------------LOGGING-----------------------------*/
+    function log(in string<64> path = "/tmp/test-visp.log": ": Log file name",
+                in unsigned long decimation = 1: ": Reduced logging frequency") {
+        doc		"Log data if visual servoing is initialized";
+
+        codel uavvs_log(in path, in decimation, inout log);
+
+        throw e_sys;
+    };
+
+    function log_stop() {
+        doc		"Stop logging";
+
+        codel uavvs_log_stop(out log);
+    };
+
+/*--------------------TASKS---------------------------------*/
+    const unsigned short loop_period_ms = 50;
+    task main
+    {
+        period loop_period_ms ms;
+
+        codel<start> vs_start(out ::ids, out desired)
+            yield perm;
+        codel<perm> vs_loop(inout ::ids, out desired, inout log)
+            yield pause::perm;
+        codel<stop> vs_stop(inout ::ids)
+            yield ether;
+    };
+};

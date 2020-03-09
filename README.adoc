@@ -1,0 +1,262 @@
+
+// This file was generated from uavvs.gen by the skeleton
+// template. Manual changes should be preserved, although they should
+// rather be added to the "doc" attributes of the genom objects defined in
+// uavvs.gen.
+
+= uavvs component
+1.0
+:toc: left
+
+// fix default asciidoctor stylesheet issue #2407 and add hr clear rule
+ifdef::backend-html5[]
+[pass]
+++++
+<link rel="stylesheet" href="data:text/css,p{font-size: inherit !important}" >
+<link rel="stylesheet" href="data:text/css,hr{clear: both}" >
+++++
+endif::[]
+
+
+This component makes the drone detect and follow an AprilTag from the 36h11 family
+
+
+== Ports
+
+
+[[desired]]
+=== desired (out)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or_rigid_body::state` `desired`
+ ** `struct ::or::time::ts` `ts`
+ *** `long` `sec`
+ *** `long` `nsec`
+ ** `boolean` `intrinsic`
+ ** `optional< struct ::or::t3d::pos >` `pos`
+ *** `double` `x`
+ *** `double` `y`
+ *** `double` `z`
+ ** `optional< struct ::or::t3d::att >` `att`
+ *** `double` `qw`
+ *** `double` `qx`
+ *** `double` `qy`
+ *** `double` `qz`
+ ** `optional< struct ::or::t3d::vel >` `vel`
+ *** `double` `vx`
+ *** `double` `vy`
+ *** `double` `vz`
+ ** `optional< struct ::or::t3d::avel >` `avel`
+ *** `double` `wx`
+ *** `double` `wy`
+ *** `double` `wz`
+ ** `optional< struct ::or::t3d::acc >` `acc`
+ *** `double` `ax`
+ *** `double` `ay`
+ *** `double` `az`
+ ** `optional< struct ::or::t3d::aacc >` `aacc`
+ *** `double` `awx`
+ *** `double` `awy`
+ *** `double` `awz`
+ ** `optional< struct ::or::t3d::jerk >` `jerk`
+ *** `double` `jx`
+ *** `double` `jy`
+ *** `double` `jz`
+ ** `optional< struct ::or::t3d::snap >` `snap`
+ *** `double` `sx`
+ *** `double` `sy`
+ *** `double` `sz`
+
+|===
+
+Provides desired velocity
+
+'''
+
+== Services
+
+[[enable_display]]
+=== enable_display (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `double` `frequency`
+
+|===
+
+Enable display with `frequency` image per second
+
+'''
+
+[[close_display]]
+=== close_display (function)
+
+
+Close the display
+
+'''
+
+[[init_grabber]]
+=== init_grabber (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `short` `device` (default `"0"`)
+
+ * `short` `cam_index` (default `"0"`)
+
+ * `short` `frame_rate` (default `"50"`) : in Hz
+
+ * `boolean` `shutter` (default `"1"`)
+
+ * `boolean` `gain` (default `"1"`)
+
+|===
+
+Initialize grabber data structure and opens the grabber object
+The parameters are:
+
+device :
+
+- 0 if using FLIR cameras through FlyCapture SDK
+
+- 1 if using cameras through OpenCV 
+
+cam_index : the index of the camera
+
+frame_rate: Select the frame_rate of the camera (for FlyCapture)
+
+shutter: auto or manual shutter (for FlyCapture)
+
+gain: auto or manual gain (for FlyCapture)
+
+'''
+
+[[init_detector]]
+=== init_detector (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `double` `tagSize`
+
+ * `double` `quad_decimate` (default `"2"`)
+
+ * `double` `nThreads` (default `"4"`)
+
+|===
+
+Initializes aprilTag detector
+
+'''
+
+[[init_camera]]
+=== init_camera (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `double` `px`
+
+ * `double` `py`
+
+ * `double` `u0`
+
+ * `double` `v0`
+
+ * `double` `kud`
+
+ * `double` `kdu`
+
+|===
+
+Initialize camera parameters.
+
+Note that this function should be called after calibrating the camera with ViSP calibration example.
+
+This method initializes the camera with specific parameters using perspective projection with distortion model.
+
+'''
+
+[[init_servo]]
+=== init_servo (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `double` `lambda_0` (default `"0.5"`) : gain at 0
+
+ * `double` `lambda_inf` (default `"0.3"`) : gain at infinity
+
+ * `double` `lambda_dot_0` (default `"30"`) : slope at 0
+
+ * `double` `z_desired` (default `"1.25"`) : Desired distance to keep from tag
+
+ * `double` `camera_pan`
+
+ * `double` `camera_pos[3]`
+
+|===
+
+Initialize visual servoing
+
+camera_pos[3] is the position of camera frame's origin in UAV's frame
+
+'''
+
+[[log]]
+=== log (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<64>` `path` (default `"/tmp/test-visp.log"`) : Log file name
+
+ * `unsigned long` `decimation` (default `"1"`) : Reduced logging frequency
+
+a|.Throws
+[disc]
+ * `exception ::uavvs::e_sys`
+ ** `short` `code`
+ ** `string<128>` `what`
+
+|===
+
+Log data if visual servoing is initialized
+
+'''
+
+[[log_stop]]
+=== log_stop (function)
+
+
+Stop logging
+
+'''
+
+== Tasks
+
+[[main]]
+=== main
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 20.0 _Hz_
+* Updates port `<<desired>>`
+|===
+
+'''
