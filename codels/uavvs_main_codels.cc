@@ -342,7 +342,6 @@ vs_stop(uavvs_ids *ids, const genom_context self)
       ids->g->grabber.disconnect(); break;
 
     case 1:
-      std::cout << "Destroying VideoCapture object" << std::endl;
       ids->g->cap.release(); break;
 
     default:
