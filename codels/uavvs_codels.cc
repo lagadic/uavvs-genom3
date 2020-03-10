@@ -24,16 +24,16 @@ uavvs_enable_display(uavvs_display_s **d, bool *display,
   {
     std::cout << "Grabber not yet initialized, setting the display frequency to default: 1Hz" << std::endl;
     (*d)->display_count = 50;
+    std::cout << "Display succesfully initialized with 1 image per second " << std::endl;
   }
 
   else // grabber is initialized
   {
     (*d)->display_count = g->frame_rate / frequency;
+    std::cout << "Display succesfully initialized with " << (*d)->display_count << " image per second " << std::endl;
   }
     
   (*d)->display = new vpDisplayX();
-
-  std::cout << "Display succesfully initialized with " << (*d)->display_count << " image per second " << std::endl;
 
   return genom_ok;
 }

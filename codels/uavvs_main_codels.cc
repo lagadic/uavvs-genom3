@@ -90,8 +90,8 @@ double t = vpTime::measureTimeMs();
   double delta_t;
   if(ids->servo)
     delta_t = (tv.tv_sec + 1e-6 * tv.tv_usec) - last_ts;
-  else // To make sure that at the beginning this delta_t is not negative, we fix it at 50ms
-      delta_t = 0.05;
+  else // To make sure that at the beginning this delta_t is not negative, we fix it at main task's period
+    delta_t = uavvs_loop_period_ms;
   
   // If no grabber initialized, don't even try to do anything in the loop.
   if(ids->grabber)
@@ -308,14 +308,6 @@ double t = vpTime::measureTimeMs();
     ddata->avel._value.wx = ids->task->ve[3];
     ddata->avel._value.wy = ids->task->ve[4];
     ddata->avel._value.wz = ids->task->ve[5];
-    // ddata->acc._present = false;
-    // ddata->acc._value.ax = ids->task->ae[0];
-    // ddata->acc._value.ay = ids->task->ae[1];
-    // ddata->acc._value.az = ids->task->ae[2];
-    // ddata->aacc._present = true;
-    // ddata->aacc._value.awx = ids->task->ae[3];
-    // ddata->aacc._value.awy = ids->task->ae[4];
-    // ddata->aacc._value.awz = ids->task->ae[5];
 
     desired->write(self);
 
@@ -336,16 +328,19 @@ double t = vpTime::measureTimeMs();
 genom_event
 vs_stop(uavvs_ids *ids, const genom_context self)
 {
-  // Closing the image grabber 
-  switch(ids->g->device){
-    case 0:
-      ids->g->grabber.disconnect(); break;
+  if(ids->g != NULL)
+  {
+    // Closing the image grabber 
+    switch(ids->g->device){
+      case 0:
+        ids->g->grabber.disconnect(); break;
 
-    case 1:
-      ids->g->cap.release(); break;
+      case 1:
+        ids->g->cap.release(); break;
 
-    default:
-      break;
+      default:
+        break;
+    }
   }
 
   return uavvs_ether;
