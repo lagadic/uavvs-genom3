@@ -112,15 +112,6 @@ double t = vpTime::measureTimeMs();
       default: break;
     }
 
-    // If display not enabled, publish this message for the first 10 frames only (otherwise the screen will be full with ok)
-    /*if(!ids->display && ids->grabber && ids->g->frame_count < 10)
-      std::cout << "Ok." << std::endl;
-    */
-
-    // Displaying if needed
-    if(ids->display && (ids->g->frame_count % ids->d->display_count == 0))
-      vpDisplay::display(ids->I->data);
-
     // Initialize the display window corresponding for the image I for one time
     if(ids->display && !ids->d->display->isInitialised())
     {
@@ -128,6 +119,9 @@ double t = vpTime::measureTimeMs();
       ids->d->display->init(ids->I->data);
     }
 
+    // Displaying if needed
+    if(ids->display && (ids->g->frame_count % ids->d->display_count == 0))
+      vpDisplay::display(ids->I->data);
 
     // If detector and camera initialized, start detecting apriltag
     if(ids->detector && ids->camera)

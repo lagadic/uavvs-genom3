@@ -30,7 +30,7 @@ uavvs_enable_display(uavvs_display_s **d, bool *display,
   else // grabber is initialized
   {
     (*d)->display_count = g->frame_rate / frequency;
-    std::cout << "Display succesfully initialized with " << (*d)->display_count << " image per second " << std::endl;
+    std::cout << "Display succesfully initialized with " << frequency << " image per second " << std::endl;
   }
     
   (*d)->display = new vpDisplayX();
