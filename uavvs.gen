@@ -25,7 +25,7 @@ component uavvs
     version   "1.0";
     doc       "This component makes the drone detect and follow an AprilTag from the 36h11 family";
     require   "genom3 >= 2.99.30";
-    codels-requires "visp >= 3.3.0";
+    codels-require "visp >= 3.3.0";
 
     uses		or_rigid_body;
 
