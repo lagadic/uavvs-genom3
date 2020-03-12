@@ -96,7 +96,7 @@ uavvs_init_grabber(uavvs_grabber_s **g, bool *grabber,
   {
     #ifdef VISP_HAVE_OPENCV
       (*g)->cap.open(cam_index);
-      (*g)->frame_rate = (*g)->cap.get(CV_CAP_PROP_FPS);
+      (*g)->frame_rate = (*g)->cap.get(CV_CAP_PROP_FPS); // Maybe cannot modify FPS
     #else
       std::cout << "Can't find OpenCV libraries" << std::endl;
     #endif
